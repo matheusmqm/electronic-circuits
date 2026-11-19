@@ -1,0 +1,14 @@
+.title Astavel 1-10 kHz
+.include ../../src/tl081_behav.lib
+Vcc vcc 0 15V
+Vee vee 0 -15V
+XU1 vp vm vcc vee out TL081B
+RB out vp 10kOhm
+RA vp 0 10kOhm
+RF out rt 18kOhm
+RP rt vm 1830Ohm
+CT vm 0 2.2nF
+Ikick 0 vp pulse(0 2u 0 10n 10n 1u 1)
+
+.tran 0 140u 0 20n
+.end

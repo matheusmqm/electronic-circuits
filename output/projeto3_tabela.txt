@@ -1,0 +1,12 @@
+== Projeto 3 - Oscilador de Wien (LTspice, modelo TL081 comportamental) ==
+Grandeza                           |      Teorico |     Simulado | Criterio | Resultado
+fosc R = 12,68 kOhm (compensado)   |    1.497e+04 |        14952 | 14850..15150 Hz | OK
+erro vs 15 kHz (compensado)        |        -0.22 |     -0.31912 | info % | info
+fosc R = 13 kOhm (sem compensacao) |    1.461e+04 |        14592 | 14607 +-1 % Hz | OK
+erro vs 15 kHz (sem compensacao)   |        -2.62 |      -2.7197 | info % | info
+Amplitude de pico (R = 12,68 kOhm) |            9 |       8.9394 | 7..11 e <13,5 V | OK
+Estabilizacao (R = 12,68 kOhm)     |            - |            0 | variacao < 5 % % | OK
+THD 2-5 (R = 12,68 kOhm)           |            - |       1.7751 | informativo (poucos %) % | info
+Amplitude de pico (R = 13 kOhm)    |            9 |       8.9412 | 7..11 e <13,5 V | OK
+Estabilizacao (R = 13 kOhm)        |            - |            0 | variacao < 5 % % | OK
+THD 2-5 (R = 13 kOhm)              |            - |       1.7767 | informativo (poucos %) % | info

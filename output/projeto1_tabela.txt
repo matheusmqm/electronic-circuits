@@ -1,0 +1,11 @@
+== Projeto 1 - Filtro Butterworth (LTspice, modelo TL081 comportamental) ==
+Grandeza                   |      Teorico |     Simulado | Criterio | Resultado
+Ganho banda passante       |        26.02 |        26.02 | 26,02 +-0,1 dB | OK
+Ganho 0,1 fc (498.0 Hz)    |        26.02 |       26.021 | informativo dB | info
+Ganho 0,5 fc (2489.9 Hz)   |        25.95 |       25.966 | +-0.1 do teor. dB | OK
+Ganho fc (4979.8 Hz)       |        23.01 |       23.007 | +-0.15 do teor. dB | OK
+Ganho 2 fc (9959.6 Hz)     |        7.891 |       7.8326 | +-0.3 do teor. dB | OK
+Ganho 10 fc (49798.0 Hz)   |       -33.98 |      -34.161 | +-0.5 do teor. dB | OK
+Ganho 100 fc (497980.0 Hz) |       -93.98 |         -100 | informativo dB | info
+Frequencia de -3 dB        |         4980 |       4978.9 | 4980 +-2 % Hz | OK
+Inclinacao 5fc-20fc        |           60 |       60.735 | 60 +-2 dB/dec | OK

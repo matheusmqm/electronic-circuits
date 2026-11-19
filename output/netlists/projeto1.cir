@@ -1,0 +1,20 @@
+.title Filtro Butterworth 3a ordem
+.include ../../src/tl081_behav.lib
+Vcc vcc 0 15V
+Vee vee 0 -15V
+Vin vin 0 dc 0 ac 1
+R1a vin a 6.8kOhm
+C1a a 0 4.7nF
+XU1 a b vcc vee o1 TL081B
+R1f o1 b 18kOhm
+R1g b 0 2kOhm
+R2a o1 n3 6.8kOhm
+R2b n3 n4 6.8kOhm
+C2a n4 0 4.7nF
+C2f n3 out 4.7nF
+XU2 n4 n5 vcc vee out TL081B
+R2f out n5 10kOhm
+R2g n5 0 10kOhm
+
+.ac dec 200 10 1meg
+.end

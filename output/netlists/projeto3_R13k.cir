@@ -1,0 +1,19 @@
+.title Oscilador Wien 15 kHz
+.include ../../src/tl081_behav.lib
+Vcc vcc 0 15V
+Vee vee 0 -15V
+XU1 vp vm vcc vee out TL081B
+Rs out ws 13000.0Ohm
+Cs ws vp 8.2e-10
+Rp vp 0 13000.0Ohm
+Cp vp 0 8.2e-10
+Rg vm 0 10000.0Ohm
+R3 out x 18000.0Ohm
+R4 x vm 3300.0Ohm
+D1 x vm D1N4148
+D2 vm x D1N4148
+Ikick 0 vp pulse(0 2u 0 10n 10n 1u 1)
+.model D1N4148 D (BV=100 CJO=4e-12 IBV=0.0001 IS=2.682e-09 M=0.333 N=1.836 RS=0.5664 TT=1.154e-08)
+
+.tran 0 8m 0 0.1u
+.end
