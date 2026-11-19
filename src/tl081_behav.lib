@@ -1,0 +1,23 @@
+* Modelo comportamental do TL081 - versao portada para LTspice
+* (original do memorial: sintaxe ngspice; fisica identica)
+*   GBW = 3 MHz, SR = 13 V/us, saturacao = Vcc-1,5 V / Vee+1,5 V (= +-13,5 V com +-15 V)
+*   Pinos: inp inn vcc vee out
+.subckt TL081B inp inn vcc vee out
+.param gm=1m gbw=3meg sr=13meg vdrop=1.5
+.param cc1={gm/(2*3.14159265359*gbw)} rr1=2e8 imax={sr*gm/(2*3.14159265359*gbw)}
+Rin inp inn 1e12
+Rcm1 inp 0 1e12
+Rcm2 inn 0 1e12
+* integrador: dv(n1)/dt = 2*pi*GBW*vd, limitado a SR = imax/cc1
+Bg 0 n1 I=max(-imax, min(imax, gm*(V(inp)-V(inn))))
+Rp n1 0 {rr1}
+Cp n1 0 {cc1}
+* grampos em n1 (evitam windup quando saturado)
+Bp np 0 V=V(vcc)-vdrop
+Bn nn 0 V=V(vee)+vdrop
+Dp n1 np DCL
+Dn nn n1 DCL
+.model DCL D(IS=1e-14 N=0.02)
+Eout nb 0 n1 0 1
+Rout nb out 1
+.ends TL081B
