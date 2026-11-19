@@ -1,15 +1,15 @@
 # Memorial de Cálculo e Plano de Simulação – Circuitos Eletrônicos (2ª Etapa, 2026.2)
 
-> **Finalidade:** documento de contexto para o Claude Code. Reúne (a) todos os cálculos **já revisados e corrigidos** dos três projetos, (b) os valores finais de cada componente, (c) o que precisa ser simulado em **PySpice (ngspice)** e (d) os critérios para dizer se a simulação confere com o cálculo.
-> **Documento complementar:** `ESPECIFICACAO_PROJETO.md` (enunciado do professor em .md).
+> **Finalidade:** documento de contexto para o Claude Code. Reúne (a) todos os cálculos **já revisados e corrigidos** dos três projetos, (b) os valores finais de cada componente, (c) o que é simulado (netlists montadas com **PySpice** e simuladas no **LTspice**) e (d) os critérios para dizer se a simulação confere com o cálculo.
+> **Documento complementar:** `spec.md` (enunciado do professor) e `circuitos.md` (explicação de cada circuito).
 > **Status dos cálculos:** todas as contas e fórmulas foram refeitas de forma independente e conferidas. **Estão corretas.** Os valores dos componentes da seção 4 são os valores finais do projeto: **não os altere** para "fazer a simulação bater".
-> **Origem dos números de referência da seção 7:** simulação feita com o modelo comportamental do TL081 do Apêndice A, no ngspice 42. Com outro modelo de amp-op (por exemplo, o macromodelo oficial da TI), diferenças pequenas são esperadas (ver seção 8).
+> **Origem dos números de referência da seção 7:** simulação no **LTspice**, com o modelo comportamental do TL081 em `src/tl081_behav.lib` (portado do ngspice; mesma física). Os scripts estão em `src/` e as saídas em `output/`. Com outro modelo de amp-op (por exemplo, o macromodelo oficial da TI), diferenças pequenas são esperadas (ver seção 8).
 
 ---
 
 ## 0. O que o Claude Code deve fazer
 
-1. Montar, com **PySpice**, os três circuitos da seção 4 com **exatamente** os valores indicados.
+1. Montar, com **PySpice**, os três circuitos (seções 3.2, 4.2 e 5.2) com **exatamente** os valores indicados.
 2. Rodar as análises indicadas (AC para o filtro; transiente para o gerador e para a Wien).
 3. Comparar cada resultado com o **valor teórico** e com os **critérios de aceitação** (seção 7).
 4. Gerar os gráficos e tabelas pedidos (seção 9), nomeando os arquivos de forma clara.
@@ -20,26 +20,34 @@ Contexto do projeto: três circuitos com amp-op para o enunciado da 2ª etapa. C
 
 ---
 
-## 1. Ambiente: PySpice + ngspice (problemas conhecidos)
+## 1. Ambiente: PySpice + LTspice
 
-Instalação básica:
+Instalação (projeto gerenciado com `uv`; Python ≥ 3.14, ver `pyproject.toml`):
 
 ```bash
-sudo apt-get install -y ngspice          # (ou o equivalente no seu sistema)
-pip install PySpice numpy scipy matplotlib
+uv sync        # matplotlib, numpy, pyspice, schemdraw, spicelib
 ```
 
-**Problema conhecido (testado):** PySpice 1.5 com **ngspice ≥ 40** e **NumPy ≥ 2** falha nos backends nativos do PySpice:
+O **LTspice** precisa estar instalado (caminho padrão `%LOCALAPPDATA%/Programs/ADI/LTspice/LTspice.exe`, ou variável de ambiente `LTSPICE_EXE`).
 
-- `ngspice-shared` → `NgSpiceCommandError: Command 'run' failed` (mesmo em circuitos triviais);
-- `ngspice-subprocess` → `NameError: Expected label Circuit instead of Note` e, depois, `np.fromstring` em modo binário removido do NumPy.
+**Fluxo adotado:**
+- O **PySpice só monta o circuito** (`Circuit`, componentes, modelo de diodo; `str(circuit)` gera a netlist).
+- `src/ltspice_runner.py` grava a netlist, acrescenta a análise, roda o LTspice em modo batch (`LTspice.exe -b`) e lê o `.raw` com **spicelib**. O backend nativo do PySpice não é usado (falha com ngspice ≥ 40 e NumPy ≥ 2).
+- As netlists finais ficam em `output/netlists/` (`src/exportar_netlists.py`); os esquemáticos são gerados por `src/esquematicos.py`.
 
-**Solução adotada:** usar o **PySpice só para montar o circuito** (`Circuit`, componentes, modelo de diodo, `str(circuit)` gera a netlist) e rodar o ngspice em **modo batch** (`ngspice -b -r arquivo.raw`), lendo o `.raw` com um leitor simples. Isso está no Apêndice B (`ngspice_runner.py`) e foi testado. Se a sua instalação de PySpice/ngspice funcionar nativamente, pode usá-la; o importante é manter os mesmos circuitos e análises.
+**Execução:**
+```bash
+cd src
+python projeto1.py   # filtro (AC)        -> output/projeto1_*.png/.txt
+python projeto2.py   # astável (transiente) -> output/projeto2_*.png/.txt
+python projeto3.py   # Wien (transiente)  -> output/projeto3_*.png/.txt
+```
 
 Observações de uso:
 - Não use `in` como nome de nó (palavra reservada do Python); os scripts usam `vin`.
-- Parâmetros de `.subckt` **não podem** ter o mesmo nome de um elemento (`r1`, `c1`): conflita em ngspice. No modelo usa-se `rr1` e `cc1`.
-- Em testes com o ngspice 42, `limit()` dentro de fonte B **não se comportou como esperado** (a saída do amp-op saturou com o sinal trocado); o modelo usa `max(-imax, min(imax, ...))`.
+- Parâmetros de `.subckt` **não podem** ter o mesmo nome de um elemento (`r1`, `c1`): no modelo usa-se `rr1` e `cc1`.
+- No modelo portado para LTspice, os grampos usam fontes `B` (`Bp`, `Bn`, `V=...`) e a corrente do integrador usa `max(-imax, min(imax, ...))`, em vez de `limit()`.
+- O modelo `tl081_behav.lib` é o `.include` de todas as netlists (o runner troca o caminho do `.include` pelo caminho absoluto).
 
 ---
 
@@ -224,13 +232,13 @@ Pior carga na saída = (RA + RB) // RF = 20k // 18k = 9,47 kΩ (≈ 10 kΩ; dife
 | P | 0 a 200 kΩ (linear) | `rt` | `vm` | potenciômetro (na simulação, usar valor fixo por rodada; P = 0 → usar ≈ 1 mΩ) |
 | C | 2,2 nF | `vm` | `0` | |
 
-**Partida (importante):** o circuito tem um equilíbrio instável em v = 0 V. Para sair dele, injete um **pulso de corrente curto** (por exemplo, 2 µA por 1 µs) no nó `vp`: `I kick 0 vp pulse(0 2u 0 10n 10n 1u 1)`. Evite `.ic` + `uic` com o modelo deste projeto (os diodos de grampo do modelo dão "timestep too small").
+**Partida (importante):** o circuito tem um equilíbrio instável em v = 0 V. Para sair dele, injete um **pulso de corrente curto** (2 µA por 1 µs) no nó `vp`: `Ikick 0 vp pulse(0 2u 0 10n 10n 1u 1)`. Evite `.ic` + `uic` com o modelo deste projeto (os diodos de grampo do modelo podem dar "timestep too small").
 
 ### 4.3 O que simular
 
 - **Análise transiente** por ≥ 12 ciclos (tempo = 14 / f estimada); passo máximo de 20 ns.
 - Rodar para quatro posições do potenciômetro: **P = 0**, **P = 1,83 kΩ** (≈ 10 kHz), **P = 188,01 kΩ** (≈ 1 kHz), **P = 200 kΩ**.
-- Medir: frequência (cruzamentos ascendentes por zero, ignorando os 2 primeiros ciclos), níveis alto e baixo, ciclo de trabalho.
+- Medir: frequência (cruzamentos ascendentes por zero, ignorando os 2 primeiros ciclos), níveis alto e baixo, ciclo de trabalho. O **ciclo de trabalho** deve ser medido sobre um **número inteiro de períodos** (entre o primeiro e o último cruzamento ascendente); numa janela com número fracionário de períodos o valor sai deslocado em até ≈ 1 ponto percentual, sem relação com o circuito.
 - Gerar: forma de onda de saída (e, opcionalmente, a tensão no capacitor `vm`, que deve ser uma exponencial entre ±6,75 V) e uma **varredura de P × frequência** cobrindo 1 kHz a 10 kHz.
 
 ---
@@ -352,7 +360,7 @@ Exemplo (GBW = 3 MHz): x ≈ 0,9775 → R ≈ 12,65 kΩ (o projeto usa 12,68 kΩ
 
 ## 7. Critérios de aceitação e resultados de referência
 
-Resultados obtidos no ngspice 42 com o modelo comportamental do Apêndice A (GBW = 3 MHz, SR = 13 V/µs, Vsat = ±13,5 V), componentes nominais.
+Resultados obtidos no **LTspice** com o modelo comportamental `src/tl081_behav.lib` (GBW = 3 MHz, SR = 13 V/µs, Vsat = ±13,5 V), componentes nominais. São os valores de `output/projeto*_tabela.txt`.
 
 ### 7.1 Projeto 1 – Filtro
 
@@ -377,7 +385,7 @@ Resultados obtidos no ngspice 42 com o modelo comportamental do Apêndice A (GBW
 | P que dá 10 kHz exatos | 1,83 kΩ | ≈ 1,955 kΩ | entre 1,8 e 2,1 kΩ |
 | f com P = 188,01 kΩ | ≈ 1 kHz | 1.000,3 Hz | 1 kHz ± 2 % |
 | f com P = 200 kΩ (mínima) | 945,2 Hz | 945,5 Hz | ≤ 1 kHz e dentro de 930 a 960 Hz |
-| Ciclo de trabalho | 50 % | 49,8 % a 51,2 % | 50 ± 2 % |
+| Ciclo de trabalho | 50 % | 50,00 % (nos quatro casos) | 50 ± 2 % |
 
 A faixa total obtida deve **conter** 1 kHz a 10 kHz.
 
@@ -395,11 +403,12 @@ A faixa total obtida deve **conter** 1 kHz a 10 kHz.
 
 ## 8. Limitações conhecidas (para o relatório e para o agente)
 
-- Os números de referência da seção 7 vêm de um **modelo comportamental**. O macromodelo oficial da TI (PSpice) pode dar GBW, slew rate e Vsat ligeiramente diferentes. Pequenas diferenças (décimos de %) em frequências e alguns % na amplitude da Wien são normais e **não** indicam erro de cálculo.
+- Os números de referência da seção 7 vêm de um **modelo comportamental** simulado no LTspice. O macromodelo oficial da TI (PSpice) pode dar GBW, slew rate e Vsat ligeiramente diferentes. Pequenas diferenças (décimos de %) em frequências e alguns % na amplitude da Wien são normais e **não** indicam erro de cálculo.
 - A amplitude da Wien depende do modelo do 1N4148 e é sensível a R3 e Rg (seção 5.1).
 - O modelo do slew rate do memorial para o gerador ("+2·ts") é conservador (≈ 0,5 µs acima da simulação). Isso explica por que, na simulação, os extremos saem ≈ 0,6 % acima do previsto (P = 1,83 kΩ dá 10.061 Hz).
 - As tolerâncias de componentes (seção 6.4) não estão nas contas nominais.
-- Usando o macromodelo oficial da TI no ngspice: conferir a **ordem dos pinos** do `.subckt` do arquivo (o modelo do Apêndice A usa `inp inn vcc vee out`) e se o ngspice consegue ler o arquivo; modelos PSpice às vezes exigem ajustes.
+- Usando o macromodelo oficial da TI: conferir a **ordem dos pinos** do `.subckt` (o modelo do projeto usa `inp inn vcc vee out`) e se o LTspice consegue ler o arquivo; modelos PSpice às vezes exigem ajustes.
+- Efeitos de amp-op real vistos na simulação (não são erros): no astável a tensão no capacitor ultrapassa ligeiramente os limiares (≈ ±6,85 V em 10–11 kHz, ≈ ±6,77 V em 1 kHz) por causa do atraso da troca; na Wien a tensão sobre R4 chega a ≈ ±0,52 V (não 0,6 V); no filtro, a 1 kHz a fase é ≈ −23° (efeito do polo de 5 kHz).
 
 ---
 
@@ -440,241 +449,18 @@ Cada projeto, no relatório, deve trazer: o circuito, os cálculos principais co
 
 ---
 
-# Apêndices (código de referência testado)
+---
 
-Todos os arquivos abaixo foram executados com sucesso (ngspice 42, Python 3.13, PySpice 1.5, NumPy 2). Colocar na mesma pasta.
+# Apêndice – código de referência
 
-## Apêndice A – `tl081_behav.lib` (modelo comportamental do TL081)
+O código de referência deixou de ser copiado neste documento: os arquivos em `src/` são a versão válida e testada.
 
-Integrador com ganho DC de 2·10⁵, GBW = 3 MHz, slew rate limitado a 13 V/µs, saturação em Vcc − 1,5 V / Vee + 1,5 V (grampos por diodos no nó interno para evitar *windup*), resistência de saída de 1 Ω. Pinos: `inp inn vcc vee out`.
-
-```spice
-* Modelo comportamental do TL081 (parametros tipicos do datasheet TI usados no memorial)
-*   GBW = 3 MHz, SR = 13 V/us, saturacao = Vcc-1,5 V / Vee+1,5 V (= +-13,5 V com +-15 V)
-*   Pinos: inp inn vcc vee out
-.subckt TL081B inp inn vcc vee out
-.param gm=1m gbw=3meg sr=13meg vdrop=1.5
-.param cc1={gm/(2*3.14159265359*gbw)} rr1=2e8 imax={sr*gm/(2*3.14159265359*gbw)}
-Rin inp inn 1e12
-Rcm1 inp 0 1e12
-Rcm2 inn 0 1e12
-* integrador: dv(n1)/dt = gm*vd/cc1 = 2*pi*GBW*vd, limitado a SR = imax/cc1
-Bg 0 n1 I='max(-imax, min(imax, gm*(v(inp)-v(inn))))'
-Rp n1 0 {rr1}
-Cp n1 0 {cc1}
-* grampos em n1 (evitam "windup" quando saturado)
-Ep np 0 vol='v(vcc)-vdrop'
-En nn 0 vol='v(vee)+vdrop'
-Dp n1 np DCL
-Dn nn n1 DCL
-.model DCL D(IS=1e-14 N=0.02)
-Eout nb 0 n1 0 1
-Rout nb out 1
-.ends TL081B
-```
-
-## Apêndice B – `ngspice_runner.py` (executa o circuito do PySpice no ngspice e lê o `.raw`)
-
-```python
-"""Executa um Circuit do PySpice no ngspice em modo batch e le o arquivo .raw.
-Motivo: PySpice 1.5 + ngspice >= 40 (e NumPy 2) quebram nos backends nativos do PySpice.
-O PySpice continua sendo usado para MONTAR o circuito; aqui so se roda e se le o resultado."""
-import os, re, subprocess, tempfile
-import numpy as np
-
-def read_raw(path):
-    raw = open(path, 'rb').read()
-    k = raw.index(b'Binary:\n')
-    hdr, body = raw[:k].decode('utf-8', 'replace'), raw[k + 8:]
-    nvar = int(re.search(r'No\. Variables:\s*(\d+)', hdr).group(1))
-    npts = int(re.search(r'No\. Points:\s*(\d+)', hdr).group(1))
-    is_cplx = 'complex' in re.search(r'Flags:(.*)', hdr).group(1)
-    names = []
-    lines = hdr.split('\nVariables:')[1].splitlines()
-    for ln in lines:
-        p = ln.split()
-        if len(p) >= 3 and p[0].isdigit():
-            names.append(p[1].lower())
-    a = np.frombuffer(body, dtype=np.float64)
-    if is_cplx:
-        a = a[:npts * nvar * 2].reshape(npts, nvar, 2)
-        a = a[..., 0] + 1j * a[..., 1]
-    else:
-        a = a[:npts * nvar].reshape(npts, nvar)
-    return {n: a[:, i] for i, n in enumerate(names)}
-
-def run(circuit, analysis, ic=None, uic=False, workdir=None):
-    """circuit: pyspice Circuit; analysis: ex. '.tran 20n 2m' ou '.ac dec 100 10 1meg';
-    ic: dict {'vp': 0.01, 'vm': 0}; retorna dict {'time'|'frequency', 'v(no)': array}."""
-    workdir = workdir or tempfile.mkdtemp(prefix='ngs_')
-    cir, rawf = os.path.join(workdir, 'c.cir'), os.path.join(workdir, 'c.raw')
-    txt = str(circuit).replace('\n.end', '')
-    if ic:
-        txt += '\n.ic ' + ' '.join(f'v({k})={v}' for k, v in ic.items())
-    txt += f'\n{analysis}' + (' uic' if uic else '') + '\n.end\n'
-    open(cir, 'w').write(txt)
-    r = subprocess.run(['ngspice', '-b', '-o', os.path.join(workdir, 'c.log'), '-r', rawf, cir],
-                       capture_output=True, text=True, cwd=os.getcwd())
-    if not os.path.exists(rawf):
-        raise RuntimeError(r.stdout + r.stderr + open(os.path.join(workdir, 'c.log')).read())
-    return read_raw(rawf)
-```
-
-## Apêndice C – `sim_filtro.py` (Projeto 1)
-
-```python
-"""Projeto 1 - Filtro passa-baixa Butterworth 3a ordem (fc = 5 kHz, 26 dB, 60 dB/dec). Analise AC."""
-import numpy as np
-import ngspice_runner
-from PySpice.Spice.Netlist import Circuit
-from PySpice.Unit import *
-
-def build():
-    c = Circuit('Filtro Butterworth 3a ordem')
-    c.include('tl081_behav.lib')
-    c.V('cc', 'vcc', c.gnd, 15@u_V)
-    c.V('ee', 'vee', c.gnd, -15@u_V)
-    c.V('in', 'vin', c.gnd, 'dc 0 ac 1')            # AC de 1 V: |Vout| = ganho em V/V
-    # 1a secao: RC + nao inversor, A1 = 1 + 18k/2k = 10
-    c.R('1a', 'vin', 'a', 6.8@u_kΩ)
-    c.C('1a', 'a', c.gnd, 4.7@u_nF)
-    c.X('U1', 'TL081B', 'a', 'b', 'vcc', 'vee', 'o1')   # + = a, - = b
-    c.R('1f', 'o1', 'b', 18@u_kΩ)
-    c.R('1g', 'b', c.gnd, 2@u_kΩ)
-    # 2a secao: Sallen-Key de componentes iguais, A2 = 1 + 10k/10k = 2
-    c.R('2a', 'o1', 'n3', 6.8@u_kΩ)
-    c.R('2b', 'n3', 'n4', 6.8@u_kΩ)
-    c.C('2a', 'n4', c.gnd, 4.7@u_nF)                 # C do + para o terra
-    c.C('2f', 'n3', 'out', 4.7@u_nF)                 # C de realimentacao positiva (n3 -> saida)
-    c.X('U2', 'TL081B', 'n4', 'n5', 'vcc', 'vee', 'out')
-    c.R('2f', 'out', 'n5', 10@u_kΩ)
-    c.R('2g', 'n5', c.gnd, 10@u_kΩ)
-    return c
-
-def analisar():
-    an = ngspice_runner.run(build(), '.ac dec 200 10 1meg')
-    f = np.real(an['frequency'])
-    g = 20*np.log10(np.abs(an['v(out)']))
-    at = lambda fr: float(np.interp(np.log10(fr), np.log10(f), g))
-    return f, g, at
-
-if __name__ == '__main__':
-    f, g, at = analisar()
-    fc = 4979.8
-    for lab, k in [('0,1 fc', .1), ('0,5 fc', .5), ('1 fc', 1), ('2 fc', 2), ('10 fc', 10), ('100 fc', 100)]:
-        print(f'{lab:7s} {k*fc:10.1f} Hz  {at(k*fc):8.3f} dB')
-    g0 = g[0]
-    i3 = np.where(g <= g0 - 3.0103)[0][0]
-    f3 = float(np.exp(np.interp(g0 - 3.0103, g[i3-1:i3+1][::-1], np.log(f[i3-1:i3+1][::-1]))))
-    print(f'ganho em banda passante = {g0:.3f} dB;  f(-3 dB) = {f3:.1f} Hz')
-    print(f'inclinacao entre 5fc e 20fc = {(at(5*fc)-at(20*fc))/np.log10(4):.2f} dB/dec')
-    import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-    plt.semilogx(f, g); plt.axvline(fc, ls='--', c='gray'); plt.grid(True, which='both', alpha=.4)
-    plt.xlabel('f (Hz)'); plt.ylabel('Ganho (dB)'); plt.title('Filtro Butterworth 3a ordem'); plt.savefig('bode_filtro.png', dpi=150)
-```
-
-## Apêndice D – `sim_astavel.py` (Projeto 2)
-
-```python
-"""Projeto 2 - Gerador de onda quadrada (astavel). Analise transiente; mede f, niveis e ciclo de trabalho."""
-import numpy as np
-import ngspice_runner
-from PySpice.Spice.Netlist import Circuit
-from PySpice.Unit import *
-
-def build(p_ohm):
-    c = Circuit('Astavel 1-10 kHz')
-    c.include('tl081_behav.lib')
-    c.V('cc', 'vcc', c.gnd, 15@u_V)
-    c.V('ee', 'vee', c.gnd, -15@u_V)
-    c.X('U1', 'TL081B', 'vp', 'vm', 'vcc', 'vee', 'out')   # + = vp, - = vm
-    c.R('B', 'out', 'vp', 10@u_kΩ)
-    c.R('A', 'vp', c.gnd, 10@u_kΩ)
-    c.R('F', 'out', 'rt', 18@u_kΩ)
-    c.R('P', 'rt', 'vm', max(p_ohm, 1e-3)@u_Ω)               # potenciometro (parte utilizada)
-    c.C('T', 'vm', c.gnd, 2.2@u_nF)
-    # pulso de corrente de 1 us na entrada nao inversora: tira o astavel do equilibrio instavel (sem usar UIC)
-    c.I('kick', c.gnd, 'vp', 'pulse(0 2u 0 10n 10n 1u 1)')
-    return c
-
-def medir(p_ohm, ciclos=12):
-    c = build(p_ohm)
-    f_est = 1/(2.1972*(18e3+p_ohm)*2.2e-9)
-    tmax = (ciclos+2)/f_est
-    an = ngspice_runner.run(c, f'.tran 20n {tmax:.6e}')
-    t = an['time']; v = an['v(out)']
-    ini = t > 2/f_est
-    t, v = t[ini], v[ini]
-    # cruzamentos ascendentes por zero, com interpolacao linear
-    idx = np.where((v[:-1] < 0) & (v[1:] >= 0))[0]
-    tc = t[idx] - v[idx]*(t[idx+1]-t[idx])/(v[idx+1]-v[idx])
-    T = np.mean(np.diff(tc))
-    duty = np.mean(v > 0)
-    return 1/T, v.max(), v.min(), duty, (t, v)
-
-if __name__ == '__main__':
-    for lab, p in [('fmax (P=0)', 0), ('10 kHz (P=1,83k)', 1830), ('1 kHz (P=188,01k)', 188010), ('fmin (P=200k)', 200e3)]:
-        f, vmax, vmin, d, _ = medir(p)
-        print(f'{lab:20s} f = {f:9.1f} Hz   Vmax = {vmax:6.2f} V   Vmin = {vmin:6.2f} V   duty = {d*100:4.1f} %')
-    import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-    _, _, _, _, (t, v) = medir(1830, ciclos=6)
-    plt.plot(t*1e6, v); plt.xlabel('t (us)'); plt.ylabel('Vout (V)'); plt.grid(alpha=.4)
-    plt.title('Astavel, P = 1,83 kOhm (~10 kHz)'); plt.savefig('onda_quadrada.png', dpi=150)
-```
-
-## Apêndice E – `sim_wien.py` (Projeto 3)
-
-```python
-"""Projeto 3 - Oscilador em ponte de Wien (15 kHz). Analise transiente; mede fosc, amplitude e THD."""
-import ngspice_runner
-import numpy as np
-from PySpice.Spice.Netlist import Circuit
-from PySpice.Unit import *
-
-def build(R=12.68e3, C=820e-12, Rg=10e3, R3=18e3, R4=3.3e3):
-    c = Circuit('Oscilador Wien 15 kHz')
-    c.include('tl081_behav.lib')
-    c.model('D1N4148', 'D', IS=2.682e-9, N=1.836, RS=0.5664, CJO=4e-12, M=0.333, TT=11.54e-9, BV=100, IBV=100e-6)
-    c.V('cc', 'vcc', c.gnd, 15@u_V)
-    c.V('ee', 'vee', c.gnd, -15@u_V)
-    c.X('U1', 'TL081B', 'vp', 'vm', 'vcc', 'vee', 'out')   # + = vp (rede de Wien), - = vm (ganho)
-    # rede de Wien: ramo serie (R+C) da saida ate vp; ramo paralelo (R||C) de vp ao terra
-    c.R('s', 'out', 'ws', R@u_Ω)
-    c.C('s', 'ws', 'vp', C@u_F)
-    c.R('p', 'vp', c.gnd, R@u_Ω)
-    c.C('p', 'vp', c.gnd, C@u_F)
-    # ganho nao inversor com estabilizacao por diodos
-    c.R('g', 'vm', c.gnd, Rg@u_Ω)
-    c.R('3', 'out', 'x', R3@u_Ω)
-    c.R('4', 'x', 'vm', R4@u_Ω)
-    c.D('1', 'x', 'vm', model='D1N4148')
-    c.D('2', 'vm', 'x', model='D1N4148')
-    c.I('kick', c.gnd, 'vp', 'pulse(0 2u 0 10n 10n 1u 1)')   # pulso de partida
-    return c
-
-def medir(c, tmax=8e-3, step='0.1u', janela=1.5e-3):
-    an = ngspice_runner.run(c, f'.tran {step} {tmax}')
-    t, v = an['time'], an['v(out)']
-    m = t > tmax - janela
-    t, v = t[m], v[m]
-    idx = np.where((v[:-1] < 0) & (v[1:] >= 0))[0]
-    tc = t[idx] - v[idx]*(t[idx+1]-t[idx])/(v[idx+1]-v[idx])
-    f = 1/np.mean(np.diff(tc))
-    # distorcao harmonica: FFT sobre numero inteiro de ciclos
-    n = len(tc) - 1
-    tt = np.linspace(tc[0], tc[-1], 20000, endpoint=False)
-    vv = np.interp(tt, t, v)
-    sp = np.abs(np.fft.rfft(vv*np.hanning(len(vv))))
-    k1 = np.argmax(sp[1:]) + 1
-    thd = np.sqrt(sum(sp[k*k1]**2 for k in range(2, 6) if k*k1 < len(sp)))/sp[k1]
-    return f, v.max(), v.min(), thd, an
-
-if __name__ == '__main__':
-    for lab, R in [('R = 12,68 kΩ (12k+680, compensado)', 12.68e3), ('R = 13 kΩ (sem compensacao)', 13e3)]:
-        f, vmax, vmin, thd, an = medir(build(R=R))
-        print(f'{lab:38s} fosc = {f:9.1f} Hz ({(f/15000-1)*100:+.2f} %)  Vpico = +{vmax:.2f} / {vmin:.2f} V   THD(2-5) = {thd*100:.2f} %')
-    import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-    f, vmax, vmin, thd, an = medir(build())
-    plt.plot(an['time']*1e3, an['v(out)']); plt.xlabel('t (ms)'); plt.ylabel('Vout (V)'); plt.grid(alpha=.4)
-    plt.title('Wien: partida e estabilizacao'); plt.savefig('wien_partida.png', dpi=150)
-```
+| Arquivo | Função |
+|---|---|
+| `src/tl081_behav.lib` | Modelo comportamental do TL081 (GBW = 3 MHz, SR = 13 V/µs, saturação Vcc − 1,5 V / Vee + 1,5 V, `Rout` = 1 Ω; pinos `inp inn vcc vee out`) |
+| `src/ltspice_runner.py` | Roda a netlist do PySpice no LTspice (batch) e lê o `.raw` com spicelib |
+| `src/medidas.py` | Reamostragem, cruzamentos por zero e tabela de critérios |
+| `src/projeto1.py` | Filtro Butterworth: análise AC, tabela e Bode |
+| `src/projeto2.py` | Astável: transiente (4 posições de P), varredura P × f, ondas |
+| `src/projeto3.py` | Wien: transiente, THD, FFT, comparação 12,68 kΩ × 13 kΩ |
+| `src/exportar_netlists.py` / `src/esquematicos.py` | Netlists em `output/netlists/` e esquemáticos |

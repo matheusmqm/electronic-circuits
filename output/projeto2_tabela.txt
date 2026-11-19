@@ -6,15 +6,15 @@ f com P = 188,01 kOhm                   |         1000 |       1000.3 | 1 kHz +-
 f com P = 200 kOhm (min)                |        945.2 |       945.51 | 930..960 e <=1 kHz Hz | OK
 Nivel alto (P = 0 (fmax))               |         13.5 |       13.512 | +-0,5 V | OK
 Nivel baixo (P = 0 (fmax))              |        -13.5 |      -13.512 | +-0,5 V | OK
-Ciclo de trabalho (P = 0 (fmax))        |           50 |       51.201 | 50 +-2 % | OK
+Ciclo de trabalho (P = 0 (fmax))        |           50 |       50.003 | 50 +-2 % | OK
 Nivel alto (P = 1,83 kOhm)              |         13.5 |       13.512 | +-0,5 V | OK
 Nivel baixo (P = 1,83 kOhm)             |        -13.5 |      -13.512 | +-0,5 V | OK
-Ciclo de trabalho (P = 1,83 kOhm)       |           50 |       50.961 | 50 +-2 % | OK
+Ciclo de trabalho (P = 1,83 kOhm)       |           50 |           50 | 50 +-2 % | OK
 Nivel alto (P = 188,01 kOhm)            |         13.5 |       13.512 | +-0,5 V | OK
 Nivel baixo (P = 188,01 kOhm)           |        -13.5 |      -13.512 | +-0,5 V | OK
-Ciclo de trabalho (P = 188,01 kOhm)     |           50 |       49.806 | 50 +-2 % | OK
+Ciclo de trabalho (P = 188,01 kOhm)     |           50 |           50 | 50 +-2 % | OK
 Nivel alto (P = 200 kOhm (fmin))        |         13.5 |       13.512 | +-0,5 V | OK
 Nivel baixo (P = 200 kOhm (fmin))       |        -13.5 |      -13.512 | +-0,5 V | OK
-Ciclo de trabalho (P = 200 kOhm (fmin)) |           50 |       49.817 | 50 +-2 % | OK
+Ciclo de trabalho (P = 200 kOhm (fmin)) |           50 |           50 | 50 +-2 % | OK
 P que da 10 kHz exatos                  |         1830 |       1955.1 | 1800..2100 Ohm | OK
 Faixa contem 1-10 kHz                   |            - |            1 | fmin<=1k e fmax>=10k  | OK

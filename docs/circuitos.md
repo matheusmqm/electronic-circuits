@@ -1,7 +1,7 @@
 # Explicação dos Circuitos – Circuitos Eletrônicos (2ª Etapa, 2026.2)
 
 > **Finalidade:** explicar, passo a passo e componente por componente, o que cada um dos três circuitos faz e por quê, a partir dos esquemáticos do projeto. No fim de cada circuito há a seção **"Intenção do circuito e o que esperar da simulação"**, que descreve o comportamento esperado em termos de ideia (o que deve ser visto), e não de conta. Ela serve para conferir se o circuito simulado faz o que se propõe.
-> **Documentos relacionados:** `ESPECIFICACAO_PROJETO.md` (enunciado) e `MEMORIAL_CALCULO.md` (cálculos e critérios numéricos).
+> **Documentos relacionados:** `spec.md` (enunciado) e `calculos.md` (cálculos e critérios numéricos).
 
 **Observação geral sobre os esquemáticos**
 - Os três desenhos **não mostram a alimentação** do amp-op. Todos os TL081 são alimentados com **±15 V** (pino V+ em +15 V, pino V− em −15 V, referência no terra). Na simulação essas fontes precisam ser incluídas.

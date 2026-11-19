@@ -33,7 +33,9 @@ def medir(p_ohm, ciclos=12):
     tu, vu = uniforme(t, v, t0=2 / f_est, t1=t[-1])
     tc = cruzamentos_asc(tu, vu)
     f = 1 / np.mean(np.diff(tc))
-    return dict(f=f, vmax=vu.max(), vmin=vu.min(), duty=np.mean(vu > 0), t=t, v=v, vm=vm)
+    # ciclo de trabalho: so sobre numero inteiro de periodos (entre o 1o e o ultimo cruzamento ascendente)
+    m = (tu >= tc[0]) & (tu < tc[-1])
+    return dict(f=f, vmax=vu.max(), vmin=vu.min(), duty=np.mean(vu[m] > 0), t=t, v=v, vm=vm)
 
 
 def main():

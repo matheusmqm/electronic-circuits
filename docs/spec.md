@@ -2,8 +2,8 @@
 
 > **Origem:** transcrição do PDF do enunciado do professor ("Material para compor a Nota da Etapa – Semestre 2026.2", arquivo `1978201-2 Etapa - Projeto da Circuitos Eletrônicos - Computação - 2026-2.pdf`).
 > **Uso:** documento de contexto para o Claude Code. O texto do enunciado foi mantido fielmente; as seções "Resumo", "Checklist" e "Notas de interpretação" foram acrescentadas só para organizar o que o enunciado já diz, sem criar requisitos novos.
-> **Ferramenta de simulação escolhida pela equipe:** PySpice (ngspice). O enunciado permite "outro simulador de sua escolha" (ver item 4).
-> **Documento complementar:** `MEMORIAL_CALCULO.md` (cálculos, valores dos componentes, plano e critérios de simulação).
+> **Ferramenta de simulação escolhida pela equipe:** PySpice (montagem das netlists) + LTspice (simulação). O enunciado permite "outro simulador de sua escolha" (ver item 4).
+> **Documento complementar:** `calculos.md` (cálculos, valores dos componentes, plano e critérios de simulação).
 
 ---
 
@@ -113,8 +113,8 @@ Os alunos que precisarem fazer a avaliação final da disciplina deverão compar
 
 Estas notas não fazem parte do enunciado. São leituras diretas do texto, registradas para evitar dúvidas:
 
-1. **Simulador.** O enunciado cita ORCAD, PROTEUS e MULTISIM, mas admite "outro de sua escolha". A equipe escolheu **PySpice (ngspice)**.
-2. **"Acrescentar dados".** O enunciado deixa propositalmente em aberto parâmetros de projeto (amplificador operacional, tensão de alimentação, valores de componentes, topologia, ganho de cada seção etc.). O que a equipe definir deve aparecer **com justificativa** no relatório. Esses dados já estão definidos e justificados em `MEMORIAL_CALCULO.md` (seção 2).
+1. **Simulador.** O enunciado cita ORCAD, PROTEUS e MULTISIM, mas admite "outro de sua escolha". A equipe escolheu **PySpice (montagem das netlists) + LTspice (simulação)**.
+2. **"Acrescentar dados".** O enunciado deixa propositalmente em aberto parâmetros de projeto (amplificador operacional, tensão de alimentação, valores de componentes, topologia, ganho de cada seção etc.). O que a equipe definir deve aparecer **com justificativa** no relatório. Esses dados já estão definidos e justificados em `calculos.md` (seção 2).
 3. **"Cada equipe deverá entregar os três projetos".** Nenhum dos três pode ficar de fora.
 4. **Ganho de 26 dB.** É ganho **na faixa de passagem** (e não em fc, onde o ganho é 3 dB menor).
 5. **Inclinação de 60 dB/década.** Equivale a um filtro de 3ª ordem (3 polos).
