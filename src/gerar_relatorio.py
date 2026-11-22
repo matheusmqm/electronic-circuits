@@ -59,6 +59,12 @@ SUBST = [
     ("Netlist exata: `output/netlists/projeto1.cir`. Análise: `.ac dec 200 10 1meg`.", "Análise: `.ac dec 200 10 1meg`."),
     ("Fonte: `output/projeto1_tabela.txt`.\n\n", ""),
     ("**Gráfico:** `output/projeto1_bode.png` — curva simulada", "A {fig:projeto1_bode} mostra a curva simulada"),
+    ("**Ganho total.** Atotal = 10^(26/20) = 19,9526 V/V.",
+     "**Ganho total.**\n\n" + r"$$[_gt] A_{\mathrm{total}}=10^{26/20}=19{,}9526\ \mathrm{V/V}"),
+    ("Regra geral (se o GBW for outro): x ≈ 1 − 4,5·(15000/GBW); R = x/(2π·15000·C).",
+     "Regra geral (se o GBW for outro):\n\n" + r"$$[_rg] x\approx1-4{,}5\,\frac{15000}{GBW},\qquad R=\frac{x}{2\pi\cdot15000\cdot C}"),
+    ("O ganho necessário passa a ser `A = 1 + Rs/Rp + Cp/Cs`.",
+     "O ganho necessário passa a ser:\n\n" + r"$$[_tol] A=1+\frac{R_s}{R_p}+\frac{C_p}{C_s}"),
     # projeto 2
     ("![Esquemático do gerador](img/circ_astavel.jpg)\n\n### 3.1 Especificação", "### 3.1 Especificação"),
     ("### 3.3 Componentes e conexões\n", "### 3.3 Componentes e conexões\n\n![Esquemático do gerador de onda quadrada (multivibrador astável)](img/circ_astavel.jpg)\n"),
@@ -244,6 +250,134 @@ def elementos(text):
     return {k: "\n".join(v) for k, v in out.items()}
 
 
+# blocos de cálculo de docs/relatorio.md -> equações (LaTeX/mathtext). Chave: início da 1ª linha do bloco.
+# ("eq", latex) = equação centralizada; ("p", texto) = frase de ligação.
+CALCS = [
+    # ---- Projeto 1 ----
+    ("H2(s) = A2", [
+        ("eq", r"H_2(s)=\frac{A_2\,\omega_0^2}{s^2+(3-A_2)\,\omega_0\,s+\omega_0^2},\qquad \omega_0=\frac{1}{RC},\qquad Q=\frac{1}{3-A_2}"),
+        ("p", "Butterworth de 3ª ordem: (s + 1)(s² + s + 1), ou seja, um par de polos com Q = 1. Logo:"),
+        ("eq", r"1=\frac{1}{3-A_2}\ \Rightarrow\ A_2=2\ (=6{,}02\ \mathrm{dB})\ \Rightarrow\ R_1=R_2=10\ \mathrm{k}\Omega"),
+    ]),
+    ("A1 = Atotal/A2", [
+        ("eq", r"A_1=\frac{A_{\mathrm{total}}}{A_2}=\frac{19{,}9526}{2}=9{,}9763\ \Rightarrow\ \frac{R_1}{R_2}=8{,}9763"),
+        ("eq", r"R_2=2\ \mathrm{k}\Omega\ \Rightarrow\ R_1=17{,}953\ \mathrm{k}\Omega\ \ \mathrm{(teórico)}"),
+        ("p", "Valor comercial R1 = 18 kΩ:"),
+        ("eq", r"A_1=1+\frac{18}{2}=10"),
+        ("eq", r"A_{\mathrm{total,real}}=10\times2=20\ \mathrm{V/V}=26{,}0206\ \mathrm{dB}"),
+        ("p", "Erro de 0,0206 dB (0,24 % em V/V)."),
+    ]),
+    ("fc = 1/(2πRC); C = 4,7 nF", [
+        ("eq", r"f_c=\frac{1}{2\pi RC},\qquad C=4{,}7\ \mathrm{nF}\ \Rightarrow\ R=\frac{1}{2\pi\,(5000)\,(4{,}7\cdot10^{-9})}=6.772{,}6\ \Omega"),
+        ("p", "Valor comercial R = 6,8 kΩ:"),
+        ("eq", r"f_c=\frac{1}{2\pi\,(6800)\,(4{,}7\cdot10^{-9})}=4.979{,}8\ \mathrm{Hz}\qquad(\mathrm{erro}\ {-}0{,}40\ \%)"),
+    ]),
+    ("|H1|² = 1/(1 + x²)", [
+        ("eq", r"|H_1|^2=\frac{1}{1+x^2},\qquad |H_2|^2=\frac{1}{1-x^2+x^4},\qquad |H_1|^2\,|H_2|^2=\frac{1}{1+x^6},\qquad x=\frac{f}{f_c}"),
+        ("eq", r"|H(f)|=\frac{A_{\mathrm{total}}}{\sqrt{1+\left(f/f_c\right)^6}},\qquad A_{\mathrm{total}}=20\ \mathrm{V/V}"),
+        ("p", "Em f = fc: 1ª seção −3,01 dB; 2ª seção 0 dB (Q = 1); total −3,01 dB. A fase em fc é:"),
+        ("eq", r"\varphi(f_c)=-45^\circ-90^\circ=-135^\circ"),
+        ("p", "e tende a −270° em alta frequência."),
+    ]),
+    # ---- Projeto 2 ----
+    ("β = RA/(RA + RB)", [
+        ("eq", r"\beta=\frac{R_A}{R_A+R_B}=\frac{10\ \mathrm{k}}{10\ \mathrm{k}+10\ \mathrm{k}}=0{,}5"),
+        ("eq", r"V_{UT}=+\beta V_{\mathrm{sat}}=+6{,}75\ \mathrm{V},\qquad V_{LT}=-6{,}75\ \mathrm{V},\qquad V_{H}=13{,}5\ \mathrm{V}\qquad(V_{\mathrm{sat}}=13{,}5\ \mathrm{V})"),
+    ]),
+    ("vC(t) = Vsat", [
+        ("eq", r"v_C(t)=V_{\mathrm{sat}}-(1+\beta)\,V_{\mathrm{sat}}\,e^{-t/(R_T C)}"),
+        ("p", "A comutação ocorre quando vC = +β·Vsat. Por simetria, t2 = t1:"),
+        ("eq", r"t_1=R_T C\,\ln\left[\frac{1+\beta}{1-\beta}\right]"),
+        ("eq", r"T=2R_T C\,\ln 3=2{,}1972\,R_T C,\qquad f=\frac{1}{2{,}1972\,R_T C}"),
+        ("p", "O ciclo de trabalho é de 50 %."),
+    ]),
+    ("RTmín (10 kHz)", [
+        ("eq", r"R_{T,\mathrm{min}}\ (10\ \mathrm{kHz})=\frac{1}{2{,}1972\times10000\times2{,}2\cdot10^{-9}}=20{,}687\ \mathrm{k}\Omega"),
+        ("eq", r"R_{T,\mathrm{max}}\ (1\ \mathrm{kHz})=\frac{1}{2{,}1972\times1000\times2{,}2\cdot10^{-9}}=206{,}87\ \mathrm{k}\Omega"),
+        ("eq", r"P=R_{T,\mathrm{max}}-R_{T,\mathrm{min}}=186{,}19\ \mathrm{k}\Omega,\qquad R_F=R_{T,\mathrm{min}}=20{,}687\ \mathrm{k}\Omega"),
+    ]),
+    ("ts = 2·Vsat/SR", [
+        ("eq", r"t_s=\frac{2V_{\mathrm{sat}}}{SR}=\frac{27\ \mathrm{V}}{13\ \mathrm{V/\mu s}}=2{,}077\ \mu\mathrm{s}\qquad(\mathrm{por\ transição})"),
+        ("eq", r"T_{\mathrm{real}}\approx2{,}1972\,R_T C+2t_s"),
+        ("p", "Com RF = 20 kΩ a frequência máxima não alcança 10 kHz; com RF = 18 kΩ alcança:"),
+        ("eq", r"R_F=20\ \mathrm{k}\Omega:\quad T=96{,}68+4{,}15=100{,}83\ \mu\mathrm{s}\ \Rightarrow\ f_{\mathrm{max}}\approx9.918\ \mathrm{Hz}<10\ \mathrm{kHz}"),
+        ("eq", r"R_F=18\ \mathrm{k}\Omega:\quad T=87{,}01+4{,}15=91{,}16\ \mu\mathrm{s}\ \Rightarrow\ f_{\mathrm{max}}\approx10.969\ \mathrm{Hz}\geq10\ \mathrm{kHz}"),
+    ]),
+    ("fmáx (P = 0):", [
+        ("eq", r"f_{\mathrm{max}}\ (P=0):\quad f_{\mathrm{ideal}}=11.493\ \mathrm{Hz};\quad f_{\mathrm{slew}}\approx10.969\ \mathrm{Hz}"),
+        ("eq", r"f_{\mathrm{min}}\ (P=200\ \mathrm{k}\Omega):\quad f_{\mathrm{ideal}}=949{,}0\ \mathrm{Hz};\quad f_{\mathrm{slew}}\approx945{,}2\ \mathrm{Hz}"),
+        ("eq", r"f\in[945;\ 10.969]\ \mathrm{Hz}\ \supset\ [1000;\ 10000]\ \mathrm{Hz}"),
+    ]),
+    ("RT = (1/f − 2·ts)", [
+        ("eq", r"R_T=\frac{1/f-2t_s}{2{,}1972\,C}"),
+        ("eq", r"f=10\ \mathrm{kHz}:\quad R_T=19{,}83\ \mathrm{k}\Omega\ \Rightarrow\ P=1{,}83\ \mathrm{k}\Omega\qquad(\mathrm{sem\ slew}:\ 2{,}69\ \mathrm{k}\Omega)"),
+        ("eq", r"f=1\ \mathrm{kHz}:\quad R_T=206{,}01\ \mathrm{k}\Omega\ \Rightarrow\ P=188{,}01\ \mathrm{k}\Omega\qquad(\mathrm{sem\ slew}:\ 188{,}87\ \mathrm{k}\Omega)"),
+    ]),
+    # ---- Projeto 3 ----
+    ("Zs = R + 1/(jωC)", [
+        ("eq", r"Z_s=R+\frac{1}{j\omega C},\qquad Z_p=\frac{R}{1+j\omega RC}"),
+        ("eq", r"\beta(j\omega)=\frac{Z_p}{Z_s+Z_p}=\frac{1}{3+j\left(\omega RC-\frac{1}{\omega RC}\right)}"),
+        ("p", "A fase é nula em ω0 e, nessa frequência, β = 1/3:"),
+        ("eq", r"\omega_0=\frac{1}{RC}\ \Rightarrow\ f_0=\frac{1}{2\pi RC},\qquad \beta(f_0)=\frac{1}{3}"),
+        ("eq", r"A\beta=1\angle0^\circ\ \Rightarrow\ A=3\ \Rightarrow\ 1+\frac{R_f}{R_g}=3\ \Rightarrow\ R_f=2R_g"),
+    ]),
+    ("C = 820 pF: R = 1/(2π", [
+        ("eq", r"R=\frac{1}{2\pi\times15000\times820\cdot10^{-12}}=12.939{,}4\ \Omega\qquad(C=820\ \mathrm{pF})"),
+        ("p", "Valor comercial R = 13 kΩ:"),
+        ("eq", r"f_0=14.930{,}1\ \mathrm{Hz}\qquad(\mathrm{erro}\ {-}0{,}47\ \%)"),
+    ]),
+    ("A(f) = 3/(1 + j·3f/GBW)", [
+        ("eq", r"A(f)=\frac{3}{1+j\,3f/GBW},\qquad \varphi=\arctan\left(\frac{3\times15000}{3\cdot10^{6}}\right)=0{,}859^\circ\qquad(f=15\ \mathrm{kHz})"),
+        ("p", "A rede de Wien precisa adiantar a mesma fase:"),
+        ("eq", r"\arctan\left[\frac{x-1/x}{3}\right]=-\arctan\left(\frac{3f}{GBW}\right)\ \Rightarrow\ x-\frac{1}{x}=-\frac{9f_{\mathrm{osc}}}{GBW},\qquad x=\frac{f_{\mathrm{osc}}}{f_0}"),
+        ("eq", r"R=13\ \mathrm{k}\Omega:\quad x=0{,}97833\ \Rightarrow\ f_{\mathrm{osc}}=14.607\ \mathrm{Hz}"),
+        ("p", "Erro total de −2,62 %: −0,47 % do valor comercial e −2,17 % do atraso do amp-op."),
+    ]),
+    ("Para fosc = 15 kHz", [
+        ("eq", r"f_{\mathrm{osc}}=15\ \mathrm{kHz}:\quad x=0{,}97775\ \Rightarrow\ f_0=\frac{15000}{x}=15.341{,}3\ \mathrm{Hz}"),
+        ("eq", r"R=\frac{1}{2\pi\times15341{,}3\times820\cdot10^{-12}}=12.651{,}6\ \Omega"),
+        ("p", "Valor comercial: 12 kΩ + 680 Ω em série = 12,68 kΩ (nos dois braços):"),
+        ("eq", r"f_0=15.306{,}9\ \mathrm{Hz}\ \Rightarrow\ f_{\mathrm{osc}}=0{,}97780\times15.306{,}9=14.967\ \mathrm{Hz}\qquad(-0{,}22\ \%)"),
+    ]),
+    ("Rg = 10 kΩ; Rf = R3 + R4", [
+        ("p", "Rg = 10 kΩ e Rf = R3 + R4, com D1 e D2 (1N4148) em antiparalelo sobre R4. Com os diodos cortados (sinal pequeno), o ganho é maior que 3 e a oscilação cresce:"),
+        ("eq", r"A=1+\frac{18\ \mathrm{k}+3{,}3\ \mathrm{k}}{10\ \mathrm{k}}=3{,}13>3"),
+        ("p", "Com os diodos conduzindo (curto ideal), o ganho é menor que 3 e a oscilação diminui:"),
+        ("eq", r"A=1+\frac{18\ \mathrm{k}}{10\ \mathrm{k}}=2{,}80<3"),
+        ("p", "A amplitude se estabiliza onde o ganho médio vale 3. A folga de partida é:"),
+        ("eq", r"\frac{3{,}13}{3}=1{,}043\qquad(+4{,}3\ \%)"),
+    ]),
+    ("Vout,p = 3·VD·Rg", [
+        ("eq", r"V_{out,p}=\frac{3V_D R_g}{2R_g-R_3}=\frac{3\times0{,}6\times10\ \mathrm{k}}{20\ \mathrm{k}-18\ \mathrm{k}}=9{,}0\ \mathrm{V}\qquad(\approx18\ \mathrm{Vpp})"),
+        ("eq", r"SR_{\mathrm{exigido}}=2\pi\times15000\times9=0{,}85\ \mathrm{V/\mu s}<13\ \mathrm{V/\mu s},\qquad 9\ \mathrm{V}<V_{\mathrm{sat}}"),
+    ]),
+    ("|Zs + Zp| em 15 kHz", [
+        ("eq", r"|Z_s+Z_p|=27{,}2\ \mathrm{k}\Omega\qquad(15\ \mathrm{kHz},\ R=12{,}68\ \mathrm{k}\Omega,\ C=820\ \mathrm{pF})"),
+        ("eq", r"R_3+R_4+R_g=31{,}3\ \mathrm{k}\Omega\qquad(28\ \mathrm{k}\Omega\ \mathrm{com\ diodos\ conduzindo})"),
+        ("eq", r"R_{\mathrm{carga}}\approx14{,}5\ \mathrm{k}\Omega\ \ (13{,}8\ \mathrm{k}\Omega)\ >\ 10\ \mathrm{k}\Omega"),
+    ]),
+]
+
+
+def converter_codigo(blocks):
+    """Troca cada bloco de cálculo (texto monoespaçado) por equações tipográficas (CALCS)."""
+    out, usados = [], set()
+    for b in blocks:
+        if b[0] != "code":
+            out.append(b)
+            continue
+        primeira = b[1].split("\n")[0]
+        for pref, itens in CALCS:
+            if primeira.startswith(pref):
+                usados.add(pref)
+                out += [("eq", "_c", t) if k == "eq" else ("p", t) for k, t in itens]
+                break
+        else:
+            raise AssertionError(f"bloco de código sem tradução: {primeira!r}")
+    assert usados == {p for p, _ in CALCS}, {p for p, _ in CALCS} - usados
+    return out
+
+
 def montar():
     rel = (DOCS / "relatorio.md").read_text(encoding="utf-8")
     for old, new in SUBST:
@@ -275,6 +409,7 @@ def montar():
     b += H(2, "Resumo dos componentes") + parse(comp, 0, titulos)
     b += H(2, "Limitações e observações") + parse(sec[6], 0, titulos)
     assert not titulos, f"tabelas sem uso: {titulos}"
+    b = converter_codigo(b)
     b += [("h0", "REFERÊNCIAS")] + parse(el["REFERÊNCIAS"])
     return b, el
 
@@ -303,9 +438,12 @@ def numerar(blocks):
             blk[1]["num"] = cont["f"]
             refs["fig:" + blk[1]["key"]] = f"Figura {cont['f']}"
         elif blk[0] == "eq":
-            cont["e"] += 1
-            refs["eq:" + blk[1]] = f"({cont['e']})"
-            blk = ("eq", blk[1], blk[2], cont["e"])
+            if blk[1].startswith("_"):          # linha de cálculo: sem número
+                blk = ("eq", blk[1], blk[2], None)
+            else:
+                cont["e"] += 1
+                refs["eq:" + blk[1]] = f"({cont['e']})"
+                blk = ("eq", blk[1], blk[2], cont["e"])
         out.append(blk)
     return out, refs
 
@@ -520,25 +658,30 @@ def add_figura(doc, d, refs):
 
 
 def add_equacao(doc, key, latex, num, tmp):
-    png = tmp / f"eq_{key}.png"
+    png = tmp / f"eq_{abs(hash((key, latex)))}.png"
     fig = plt.figure(figsize=(0.1, 0.1))
-    fig.text(0, 0, f"${latex}$", fontsize=12)
+    fig.text(0, 0, f"${latex}$", fontsize=13.5)
     fig.savefig(png, dpi=300, bbox_inches="tight", pad_inches=0.04, transparent=True)
     plt.close(fig)
     from PIL import Image
     with Image.open(png) as im:
         w, h = im.size
     p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.5
-    p.paragraph_format.space_before = Pt(6)
-    p.paragraph_format.space_after = Pt(6)
+    p.paragraph_format.line_spacing = 1.5 if num else 1.15
+    p.paragraph_format.space_before = Pt(6 if num else 3)
+    p.paragraph_format.space_after = Pt(6 if num else 3)
     p.paragraph_format.keep_together = True
-    ts = p.paragraph_format.tab_stops
-    ts.add_tab_stop(Cm(8), WD_TAB_ALIGNMENT.CENTER)
-    ts.add_tab_stop(Cm(16), WD_TAB_ALIGNMENT.RIGHT)
-    p.add_run("\t")
-    p.add_run().add_picture(str(png), width=Cm(w / 300 * 2.54))
-    p.add_run(f"\t({num})")
+    larg = min(w / 300 * 2.54, 15.0 if num else 16.0)
+    if num:
+        ts = p.paragraph_format.tab_stops
+        ts.add_tab_stop(Cm(8), WD_TAB_ALIGNMENT.CENTER)
+        ts.add_tab_stop(Cm(16), WD_TAB_ALIGNMENT.RIGHT)
+        p.add_run("\t")
+        p.add_run().add_picture(str(png), width=Cm(larg))
+        p.add_run(f"\t({num})")
+    else:                                   # linha de cálculo: centralizada, sem número
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run().add_picture(str(png), width=Cm(larg))
 
 
 def campo(par, instr, texto_cache=""):
