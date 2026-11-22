@@ -12,7 +12,7 @@ Estrutura do PDF entregue, limitada ao que o `spec.md` exige e à NBR 14724. Nad
 | Projeto 2: gerador de onda quadrada, 1 kHz a 10 kHz, com amp-op | Cap. 4 |
 | Projeto 3: oscilador de ponte de Wien, 15 kHz, com amp-op | Cap. 5 |
 | Dados acrescentados a cada projeto, com o porquê | Seção 2.1 e cálculos de cada projeto |
-| Simulador à escolha | Seção 2.2 (LTspice, montagem das netlists com PySpice) |
+| Simulador à escolha | Seção 2.2 (LTspice; netlists montadas com PySpice) |
 | FET: caracterização e curvas características | Seções 6.1 e 6.2 |
 | FET: polarização e amplificação | Seção 6.3 |
 | FET: aplicações | Seção 6.4 |
@@ -25,12 +25,12 @@ Estrutura do PDF entregue, limitada ao que o `spec.md` exige e à NBR 14724. Nad
 
 ```
 1 INTRODUÇÃO
-2 METODOLOGIA E FERRAMENTAS DE SIMULAÇÃO   (2.1 a 2.6)
+2 METODOLOGIA E FERRAMENTAS DE SIMULAÇÃO   (2.1 dados acrescentados; 2.2 simulador; 2.3 alimentação e partida)
 3 PROJETO 1 – FILTRO PASSA-BAIXA BUTTERWORTH   (3.1 a 3.6)
 4 PROJETO 2 – GERADOR DE ONDA QUADRADA          (4.1 a 4.6)
 5 PROJETO 3 – OSCILADOR SENOIDAL EM PONTE DE WIEN (5.1 a 5.6)
 6 PESQUISA TEÓRICA: TRANSISTOR A EFEITO DE CAMPO (FET) (6.1 a 6.4)
-7 CONSIDERAÇÕES FINAIS                          (7.1 a 7.3)
+7 CONSIDERAÇÕES FINAIS                          (conclusão e limitações, sem subseções)
 ```
 
 Cada projeto: especificação, cálculos, componentes e conexões (com o esquemático), funcionamento, resultados da simulação e análise.

@@ -42,15 +42,8 @@ NATUREZA = (f"Relatório da 2ª etapa da disciplina de {DISCIPLINA}, semestre 20
 # ================= ajustes sobre o texto de docs/relatorio.md =====================
 # (trechos que citam arquivos/jargão do repositório, ou cuja numeração muda no PDF)
 SUBST = [
-    ("| **schemdraw** | Esquemáticos (`src/esquematicos.py`) |", "| **schemdraw** | Esquemáticos |"),
-    ("| **uv** | Gerenciador do ambiente (Python ≥ 3.14, `pyproject.toml`) |\n", ""),
-    ("O fluxo é: PySpice monta a netlist → `ltspice_runner.py` grava o `.cir`, acrescenta a análise, roda o LTspice e lê o `.raw`.",
-     "O fluxo é: o PySpice monta a netlist, à qual se acrescenta a análise; o LTspice a simula e o resultado é lido do arquivo `.raw`."),
-    ("### 1.2 Modelo do amplificador operacional (`src/tl081_behav.lib`)", "### 1.2 Modelo do amplificador operacional (TL081)"),
-    ("Definidos no memorial (`calculos.md`, seção 7) e aplicados automaticamente pelos scripts; cada linha das tabelas é marcada `OK`, `FALHOU` ou `info` (informativo, sem critério).",
-     "Cada resultado simulado é comparado com um critério de aceitação definido antes das simulações; nas tabelas de resultados, cada linha é marcada OK, FALHOU ou info (informativo, sem critério)."),
-    (" (versão anterior do script dava 51,2 %; corrigido, o valor é 50,00 %)", ""),
     ("(valores típicos do datasheet TI)", "(valores típicos do datasheet da Texas Instruments; TEXAS INSTRUMENTS, [s.d.])"),
+    (" Não se usa `.ic` + `uic`.", ""),
     # projeto 1
     ("![Esquemático do filtro](img/circ_filtro.jpg)\n\n### 2.1 Especificação", "### 2.1 Especificação"),
     ("### 2.3 Componentes e conexões\n", "### 2.3 Componentes e conexões\n\n![Esquemático do filtro passa-baixa Butterworth](img/circ_filtro.jpg)\n"),
@@ -63,15 +56,20 @@ SUBST = [
      "**Ganho total.**\n\n" + r"$$[_gt] A_{\mathrm{total}}=10^{26/20}=19{,}9526\ \mathrm{V/V}"),
     ("Regra geral (se o GBW for outro): x ≈ 1 − 4,5·(15000/GBW); R = x/(2π·15000·C).",
      "Regra geral (se o GBW for outro):\n\n" + r"$$[_rg] x\approx1-4{,}5\,\frac{15000}{GBW},\qquad R=\frac{x}{2\pi\cdot15000\cdot C}"),
-    ("O ganho necessário passa a ser `A = 1 + Rs/Rp + Cp/Cs`.",
-     "O ganho necessário passa a ser:\n\n" + r"$$[_tol] A=1+\frac{R_s}{R_p}+\frac{C_p}{C_s}"),
+    ("- A inclinação medida entre 5·fc e 20·fc é 60,74 dB/déc, dentro de ±2 dB/déc de 60.",
+     "- A inclinação medida entre 5·fc e 20·fc é 60,74 dB/déc, próxima dos 60 dB/déc especificados."),
+    ("**Resultado do Projeto 1:** todos os critérios atendidos.", "**Resultado do Projeto 1:** o filtro atende à especificação."),
     # projeto 2
     ("![Esquemático do gerador](img/circ_astavel.jpg)\n\n### 3.1 Especificação", "### 3.1 Especificação"),
     ("### 3.3 Componentes e conexões\n", "### 3.3 Componentes e conexões\n\n![Esquemático do gerador de onda quadrada (multivibrador astável)](img/circ_astavel.jpg)\n"),
     ("Netlist de exemplo: `output/netlists/projeto2_P1k83.cir` (`.tran 0 140u 0 20n`).", "Análise de exemplo: `.tran 0 140u 0 20n`."),
     ("Fonte: `output/projeto2_tabela.txt`. Quatro posições", "Quatro posições"),
     ("Teórico (memorial)", "Teórico"),
-    ("O memorial estimava", "O cálculo teórico estimava"),
+    ("O memorial estimava 1.830 Ω (critério: 1.800–2.100 Ω, OK)", "O cálculo teórico estimava 1.830 Ω"),
+    ("pelo método da secante (6 iterações, partindo de 1 kΩ e 3 kΩ) →", "obtido por ajuste na simulação →"),
+    ("⇒ a faixa **contém** 1–10 kHz (OK).", "⇒ a faixa **contém** 1–10 kHz."),
+    ("**Resultado do Projeto 2:** todos os critérios atendidos. Ciclo de trabalho = 50,00 % em todas as posições.",
+     "**Resultado do Projeto 2:** a faixa de 1 kHz a 10 kHz é coberta, com ciclo de trabalho de 50 % em todas as posições."),
     ("estimativa do memorial", "estimativa teórica"),
     ("**Varredura P × frequência** (`output/projeto2_p_vs_f.png`; ciclo de trabalho", "**Varredura P × frequência** (ciclo de trabalho"),
     ("**Gráficos:**\n- `output/projeto2_ondas.png`: grade 2×2 com 4 períodos finais de V(out) e da tensão no capacitor V(vm) para P = 0, 1,83 kΩ, 188,01 kΩ e 200 kΩ (título de cada painel traz a frequência medida).\n- `output/projeto2_p_vs_f.png`: P (kΩ) × f (Hz), eixo f em escala log, com linhas em 1 kHz e 10 kHz.",
@@ -82,20 +80,28 @@ SUBST = [
     ("Netlists: `output/netlists/projeto3_R12k68.cir` e `projeto3_R13k.cir` (`.tran 0 8m 0 0.1u`).", "Análise: `.tran 0 8m 0 0.1u`."),
     ("Fonte: `output/projeto3_tabela.txt`. Duas rodadas", "Duas rodadas"),
     ("**Gráficos:**\n- `output/projeto3_partida.png`: V(out) × t (0–8 ms), partida e estabilização (R = 12,68 kΩ).\n- `output/projeto3_zoom.png`: 4 ciclos na região estacionária.\n- `output/projeto3_fft.png`: espectro de 0 a 6·f (amplitude em dBV com a THD no título).\n- `output/projeto3_comparacao_R.png`: 4 ciclos finais com R = 12,68 kΩ × R = 13 kΩ, lado a lado, com fosc e erro em cada título.",
-     "A {fig:projeto3_partida} mostra V(out) × t (0–8 ms), com a partida e a estabilização (R = 12,68 kΩ); a {fig:projeto3_zoom}, 4 ciclos na região estacionária; a {fig:projeto3_fft}, o espectro de 0 a 6·f (amplitude em dBV, com a THD no título); e a {fig:projeto3_comparacao_R}, os 4 ciclos finais com R = 12,68 kΩ e R = 13 kΩ, lado a lado, com fosc e erro em cada título."),
+     "A {fig:projeto3_partida} mostra V(out) × t (0–8 ms), com a partida e a estabilização (R = 12,68 kΩ); a {fig:projeto3_zoom}, 4 ciclos na região estacionária; e a {fig:projeto3_comparacao_R}, os 4 ciclos finais com R = 12,68 kΩ e R = 13 kΩ, lado a lado, com fosc e erro em cada título."),
+    ("![Espectro](../output/projeto3_fft.png)\n\n", ""),
     ("prevista no memorial", "prevista no cálculo teórico"),
-    # limitações e referências cruzadas
-    ("- A medição do ciclo de trabalho foi corrigida para períodos inteiros (ver 1.4).\n", ""),
-    ("Na Wien, ver a tabela de pior caso na seção 4.2.", "Na Wien, ver a Seção 5.2."),
-    ("usar a regra da seção 4.2 para reajustar", "usar a regra da Seção 5.2 para reajustar"),
+    ("**Resultado do Projeto 3:** todos os critérios atendidos.", "**Resultado do Projeto 3:** o oscilador atende à especificação, oscilando em 14.952 Hz."),
 ]
+
+# trechos removidos do texto de docs/relatorio.md (do marcador inicial até o marcador final, que é mantido)
+CORTES = [
+    ("**Tolerâncias (para montagem física).**", "### 4.3 Componentes e conexões"),                       # análise de tolerâncias
+    ("**Espectro (R = 12,68 kΩ, FFT sobre número inteiro de ciclos):**", "**Outras grandezas observadas (R = 12,68 kΩ, regime):**"),  # THD, espectro e partida
+]
+# linhas removidas (início da linha)
+CORTAR_LINHAS = ["- THD de 1,78 %", "- **Tolerâncias** (componentes reais)", "- Se o GBW do modelo for outro",
+                 "- A medição do ciclo de trabalho foi corrigida"]
+# colunas de critério de aceitação e linhas de THD saem das tabelas
+COLUNAS_FORA = ("Critério", "Resultado")
+LINHAS_FORA = ("THD",)
 
 # títulos das tabelas/quadros de docs/relatorio.md, na ordem em que aparecem no PDF
 # (Q = quadro, conteúdo descritivo; T = tabela, dados numéricos)
 TITULOS_REL = [
     ("Q", "Dados acrescentados ao projeto e justificativas"),
-    ("Q", "Ferramentas utilizadas na simulação"),
-    ("Q", "Análises e métodos de medida por projeto"),
     ("Q", "Componentes e conexões do filtro passa-baixa"),
     ("T", "Resultados da simulação AC do filtro passa-baixa"),
     ("T", "Ganho e fase do filtro em frequências adicionais"),
@@ -103,13 +109,8 @@ TITULOS_REL = [
     ("T", "Frequência de saída do gerador para quatro posições do potenciômetro"),
     ("T", "Níveis de saída e ciclo de trabalho do gerador"),
     ("T", "Frequência simulada do gerador em função de P"),
-    ("T", "Ganho necessário do oscilador de Wien nos piores casos de tolerância"),
     ("Q", "Componentes e conexões do oscilador de Wien"),
     ("T", "Resultados da simulação do oscilador de Wien"),
-    ("T", "Espectro do oscilador de Wien (R = 12,68 kΩ)"),
-    ("T", "Pico de saída do oscilador de Wien por janela de tempo"),
-    ("T", "Resumo geral dos resultados"),
-    ("Q", "Resumo dos componentes"),
 ]
 
 # legendas e frase de citação das figuras que ainda não são citadas no texto
@@ -174,6 +175,11 @@ def parse(text, shift=0, titulos=None):
             hdr = split_cells(lines[i])
             aligns = ["r" if c.endswith(":") and not c.startswith(":") else "l" for c in split_cells(lines[i + 1])]
             rows = [split_cells(r) for r in lines[i + 2:j]]
+            if any(h in COLUNAS_FORA for h in hdr):          # sem colunas de critério de aceitação nem linhas de THD
+                manter = [k for k, h in enumerate(hdr) if h not in COLUNAS_FORA]
+                rows = [[r[k] for k in manter] for r in rows if not r[0].startswith(LINHAS_FORA)]
+                hdr = [hdr[k] for k in manter]
+                aligns = [aligns[k] for k in manter]
             for r in rows:
                 assert len(r) == len(hdr), f"tabela com colunas inconsistentes: {r} vs {hdr}"
             kind, title = pending if pending else titulos.pop(0)
@@ -249,6 +255,13 @@ def elementos(text):
             out[cur].append(ln)
     return {k: "\n".join(v) for k, v in out.items()}
 
+
+TEXTO_SIMULADOR = (
+    "A simulação foi feita no LTspice, simulador de escolha da equipe, como o enunciado permite. "
+    "As netlists foram montadas em Python com o PySpice. O amplificador operacional foi representado por um "
+    "modelo comportamental do TL081, com produto ganho-banda (GBW), taxa de subida (*slew rate*) e saturação "
+    "conforme a Seção 2.1."
+)
 
 # blocos de cálculo de docs/relatorio.md -> equações (LaTeX/mathtext). Chave: início da 1ª linha do bloco.
 # ("eq", latex) = equação centralizada; ("p", texto) = frase de ligação.
@@ -383,6 +396,11 @@ def montar():
     for old, new in SUBST:
         assert old in rel, f"trecho não encontrado em relatorio.md: {old[:70]!r}"
         rel = rel.replace(old, new)
+    for ini, fim in CORTES:
+        i, j = rel.index(ini), rel.index(fim)
+        assert i < j, ini
+        rel = rel[:i] + rel[j:]
+    rel = "\n".join(ln for ln in rel.split("\n") if not ln.startswith(tuple(CORTAR_LINHAS)))
     sec = sections_of(rel)
     el = elementos((DOCS / "elementos.md").read_text(encoding="utf-8"))
     fet = (DOCS / "fet.md").read_text(encoding="utf-8")
@@ -394,7 +412,9 @@ def montar():
     # 2 Metodologia
     b += H(1, "METODOLOGIA E FERRAMENTAS DE SIMULAÇÃO")
     b += H(2, "Dados acrescentados ao projeto e justificativas") + parse(sec[0], 0, titulos)
-    b += parse(sec[1], -1, titulos)
+    b += H(2, "Simulador utilizado") + parse(TEXTO_SIMULADOR)
+    partida = sec[1].split("### 1.3 Alimentação e partida")[1].split("### 1.4")[0]
+    b += H(2, "Alimentação e partida dos osciladores") + parse(partida)
     # 3-5 Projetos
     for num, tit in ((2, "PROJETO 1 – FILTRO PASSA-BAIXA BUTTERWORTH"),
                      (3, "PROJETO 2 – GERADOR DE ONDA QUADRADA"),
@@ -403,11 +423,8 @@ def montar():
     # 6 FET
     b += parse(fet, 0, titulos)
     # 7 Considerações finais
-    resumo, comp = sec[5].split("### Resumo dos componentes")
     b += H(1, "CONSIDERAÇÕES FINAIS") + parse(el["CONCLUSÃO"])
-    b += H(2, "Resumo geral dos resultados") + parse(resumo, 0, titulos)
-    b += H(2, "Resumo dos componentes") + parse(comp, 0, titulos)
-    b += H(2, "Limitações e observações") + parse(sec[6], 0, titulos)
+    b += parse("Os resultados devem ser lidos com as seguintes observações:\n\n" + sec[6], 0, titulos)
     assert not titulos, f"tabelas sem uso: {titulos}"
     b = converter_codigo(b)
     b += [("h0", "REFERÊNCIAS")] + parse(el["REFERÊNCIAS"])
